@@ -99,7 +99,7 @@ def quit(item):
 quitItem.connect('activate', quit)
 
 def settingsShow(item):
-	os.system("%s/settings.py" % script_dir)
+    os.system("%s/settings.py" % script_dir)
 settingsItem.connect('activate', settingsShow)
 
 def luckMaker(item):

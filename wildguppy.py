@@ -1,12 +1,6 @@
 #!/usr/bin/env python
-import Image
-import ImageStat
-import math
-import os
-import time
-import sys
-import json
-
+import Image, ImageStat
+import math, os, time, sys, json
 
 default_samplerate = 5
 fixed = False
@@ -17,13 +11,11 @@ default_config = {'samplerate':str(default_samplerate), 'maxbrightness':"100", '
 try:
     config_file = json.load(open(file_path))
 except:
-    os.system("mkdir %s/.config/wildguppy/" % home_path)
-    os.system("touch %s" % file_path)
+    os.system("mkdir " + home_path + "/.config/wildguppy/")
+    os.system("touch " + file_path)
     json.dump(default_config, open(file_path, 'w'))
     config_file = json.load(open(file_path))
     
-maxbr = float(config_file['maxbrightness'])
-minbr = float(config_file['minbrightness'])
 
 def brightness(im_file):
     im = Image.open(im_file).convert('L')
@@ -32,10 +24,11 @@ def brightness(im_file):
     return stat.rms[0]
 
 def takeSample(tmpimg):
-    os.system("fswebcam -r 356x292 -d /dev/video0 %s" %tmpimg)
+    #os.system("fswebcam -r 356x292 -d /dev/video0 " + tmpimg)
+    os.system("streamer -f jpeg -o " + tmpimg)
 
 def takeScreeenSample(tmpimg):
-    os.system("scrot %s" %tmpimg)
+    os.system("scrot " + tmpimg)
 
 def error_msg(type, arg):
     if type == 1:
@@ -52,29 +45,26 @@ def error_msg(type, arg):
 
 class autoBrightness():
     def __init__(self):
-        self.maxbr_ = maxbr
-        self.minbr_ = minbr
-                
-    def run(self, samplerate=config_file['samplerate']):
-        self.samplerate = float(samplerate)
+        self.maxbr_ = float(config_file['maxbrightness'])
+        self.minbr_ = float(config_file['minbrightness'])
+        self.samplerate = float(config_file['samplerate'])
+
+    def run(self):
         while True:
             self.run_once()
             time.sleep(self.samplerate)
                         
     def run_once(self):
-        tmpimg = "/tmp/autobrightness-sample.jpg"
-        tmpScreenImg = "/tmp/autobrightness-screen-sample.jpg"
+        tmpimg = "/tmp/autobrightness-sample.jpeg"
+        tmpScreenImg = "/tmp/autobrightness-screen-sample.jpeg"
         takeSample(tmpimg)
         takeScreeenSample(tmpScreenImg)
         brightnessLevel = brightness(tmpimg)
         ScreenbrightnessLevel = brightness(tmpScreenImg)
-        print brightnessLevel
-        print ScreenbrightnessLevel
         set = (brightnessLevel + 255 - ScreenbrightnessLevel)/2.0/255
         new_set = self.minbr_ + (self.maxbr_ - self.minbr_)*set
-        print "\n"
-        print new_set
-        os.system('xbacklight -set %s' % str(new_set))
+        print brightnessLevel, ScreenbrightnessLevel, new_set
+        os.system('xbacklight -set ' + str(new_set))
         return True
                 
 if __name__ == "__main__":
