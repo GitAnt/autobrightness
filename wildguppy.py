@@ -28,6 +28,7 @@ minbr = float(config_file['minbrightness'])
 def brightness(im_file):
     im = Image.open(im_file).convert('L')
     stat = ImageStat.Stat(im)
+    os.system("rm %s" %im_file)
     return stat.rms[0]
 
 def takeSample(tmpimg):
